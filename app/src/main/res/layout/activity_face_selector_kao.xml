@@ -9,8 +9,96 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.kao.face.FaceSelectorKaoActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:id="@+id/layout1">
+        <TextView
+            android:id = "@+id/thistext"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Like or Dislike and Press Next!" />
+
+        <ImageView
+            android:id="@+id/imageView1"
+            android:layout_width="160dp"
+            android:layout_height="160dp" />
+
+        <RadioGroup android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:id="@+id/RadioGroup">
+            <RadioButton android:text="Like"
+                android:id="@+id/RadioButton1"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content">
+            </RadioButton>
+            <RadioButton android:text="Dislike"
+                android:id="@+id/RadioButton2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+            </RadioButton>
+        </RadioGroup>
+
+        <Button
+            android:id="@+id/button1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:text="Next" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:orientation="vertical"
+        android:id="@+id/layout2">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Now learning..." />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:orientation="vertical"
+        android:id="@+id/layout3">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Learning Finish! Other recommended people are.." />
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:columnCount="2"
+            android:rowCount="3">
+            <ImageView
+                android:id="@+id/resultImage1"
+                android:layout_width="160dp"
+                android:layout_height="160dp" />
+            <ImageView
+                android:id="@+id/resultImage2"
+                android:layout_width="160dp"
+                android:layout_height="160dp" />
+            <ImageView
+                android:id="@+id/resultImage3"
+                android:layout_width="160dp"
+                android:layout_height="160dp" />
+            <ImageView
+                android:id="@+id/resultImage4"
+                android:layout_width="160dp"
+                android:layout_height="160dp" />
+            <ImageView
+                android:id="@+id/resultImage5"
+                android:layout_width="160dp"
+                android:layout_height="160dp" />
+            <ImageView
+                android:id="@+id/resultImage6"
+                android:layout_width="160dp"
+                android:layout_height="160dp" />
+        </GridLayout>
+    </LinearLayout>
 </RelativeLayout>

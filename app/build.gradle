@@ -7,7 +7,7 @@ model {
 
         defaultConfig {
             applicationId "com.kao.face"
-            minSdkVersion.apiLevel 11
+            minSdkVersion.apiLevel 14
             targetSdkVersion.apiLevel 23
             versionCode 1
             versionName "1.0"

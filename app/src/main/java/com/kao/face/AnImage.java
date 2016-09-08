@@ -39,6 +39,12 @@ class AnImage implements Serializable {
         return ans;
     }
 
+    public int[] getColorPixels() {
+        int [] ans = new int[color_pixels.length];
+        System.arraycopy(color_pixels, 0, ans, 0, color_pixels.length);
+        return ans;
+    }
+
     public int getWidth() {
         return width;
     }

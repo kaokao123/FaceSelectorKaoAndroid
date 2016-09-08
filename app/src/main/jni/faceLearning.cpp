@@ -59,10 +59,10 @@ void init_net(
         int width, int height,
         int max_label)
 {
-    net << convolutional_layer<tan_h>(85, 85, 5, 1, 6)   // conv5x5 6featuremaps
-        << average_pooling_layer<tan_h>(81, 81, 6, 9)    // 28x28in, pool2x2
-        << fully_connected_layer<tan_h>(9 * 9 * 6, 120)  // to 120out
-        << fully_connected_layer<softmax>(120, max_label + 1);
+    net << convolutional_layer<tan_h>(29, 29, 5, 1, 6)   // conv5x5 6featuremaps
+        << average_pooling_layer<tan_h>(25, 25, 6, 5)    // 29x29in, pool5x5
+        << fully_connected_layer<tan_h>(5 * 5 * 6, 80)  // to 80out
+        << fully_connected_layer<softmax>(80, max_label + 1);
 }
 
 void train_net(

@@ -6,15 +6,29 @@ import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
+import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 public class FaceSelectorKaoActivity extends AppCompatActivity {
     private final ImageLoader IMAGE_LOADER = new ImageLoaderAndroid();
     private static final String LOG_TAG = "[FaceSelectorKao]";
+
+    ArrayList<Integer> mIndices, mLabels;
+    AnImage[] mImgs;
+    int mIndex;
+    int mNumImages = 6;
+
 
     private class ImageLoaderAndroid implements ImageLoader {
         public AnImage[] loadImage(String filename) {
@@ -55,73 +69,140 @@ public class FaceSelectorKaoActivity extends AppCompatActivity {
         }
     }
 
-    private class TestFaceSelectorTask extends AsyncTask<Void, Void, Void> {
+    private class FaceSelectorTask extends AsyncTask<ArrayList<Integer>, Void, ArrayList<ClassificationResult>> {
         @Override
-        protected Void doInBackground(Void... params) {
-            Log.e(LOG_TAG, "=== JNI test start ===");
-
-            AnImage[] imgs = IMAGE_LOADER.loadImage("faces.jpg");
-            int numImgs = 6;
-
-            Log.e(LOG_TAG, "=== JNI tiny_cnn connection test ===");
-            String ret = TinyCnnJni.testTinyCnnJni(
-                    new byte[]{10, 0, 0, 0,  0, 10, 0, 0,  0, 0, 10, 0,  0, 0, 0, 10,  0, 0, 0, 0},
-                    5,
-                    4,
-                    new byte[]{1, 2, 3, 4, 5},
-                    5,
-                    new byte[]{1, 3, 2, 7},
-                    3,
-                    2000
-            );
-            Log.e(LOG_TAG, "" + ret);
-
-            Log.e(LOG_TAG, "=== Face image classification test ===");
-            Random rrrr = new Random();
-            List<Integer> indices = new ArrayList<Integer>();
-            for (int i=0; i<numImgs; i++) {
-                indices.add(rrrr.nextInt(imgs.length));
-            }
-            List<Integer> labels = new ArrayList<Integer>();
-            for (int i=0; i<numImgs; i++) {
-                labels.add(rrrr.nextInt(2));
-            }
-            String logstr = "Indices: [";
-            for (int i=0; i<numImgs; i++) {
-                logstr += "" + indices.get(i) + ", ";
-            }
-            Log.e(LOG_TAG, logstr + "]");
-            logstr = "Like: [";
-            for (int i=0; i<numImgs; i++) {
-                logstr += "" + labels.get(i) + ", ";
-            }
-            Log.e(LOG_TAG, logstr + "]");
+        protected ArrayList<ClassificationResult> doInBackground(ArrayList<Integer>... params) {
             FavoriteFaceSelector selecotor = new FavoriteFaceSelector();
-            Log.e(LOG_TAG, "Start Training...");
-            selecotor.trainWith(imgs, indices, labels);
-            Log.e(LOG_TAG, "Training done!! :)");
-            List<FavoriteFaceSelector.ClassificationResult> results = selecotor.getSortedFavorites(imgs, 6);
-            int numResults = results.size();
-            for (int i=0; i<numResults; i++) {
-                FavoriteFaceSelector.ClassificationResult result = results.get(i);
-                Log.e(LOG_TAG, "["+result.index+"] "+result.score+" ("+result.label+")");
-            }
+            selecotor.trainWith(mImgs, params[0], params[1]);
+            ArrayList<ClassificationResult> results = selecotor.getSortedFavorites(mImgs, 6);
+            return results;
+        }
 
-            return null;
+        @Override
+        protected void onPostExecute(ArrayList<ClassificationResult> classificationResults) {
+            int numResults = classificationResults.size();
+            LinearLayout layout2 = (LinearLayout)findViewById(R.id.layout2);
+            LinearLayout layout3 = (LinearLayout)findViewById(R.id.layout3);
+            if (layout3 == null || layout2 == null) {
+                Log.e(LOG_TAG, "ERROR: cant find ID for the view");
+                return;
+            }
+            layout2.setVisibility(View.GONE);
+            layout3.setVisibility(View.VISIBLE);
+
+            int [] resultImageIds = new int[]{
+                    R.id.resultImage1, R.id.resultImage2, R.id.resultImage3,
+                    R.id.resultImage4, R.id.resultImage5, R.id.resultImage6,
+            };
+
+            for (int i=0; i<numResults; i++) {
+                ClassificationResult result = classificationResults.get(i);
+                Log.i(LOG_TAG, "["+result.index+"] "+result.score+" ("+result.label+")");
+
+                ImageView imgView = (ImageView)findViewById(resultImageIds[i]);
+                AnImage anImage = mImgs[result.index];
+                Bitmap bmp = Bitmap.createBitmap(anImage.getColorPixels(), anImage.getWidth(), anImage.getHeight(), Bitmap.Config.ARGB_8888);
+                if (imgView == null) {
+                    Log.e(LOG_TAG, "ERROR: cant find ID for the view");
+                    return;
+                }
+                imgView.setImageBitmap(bmp);
+            }
         }
     }
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_face_selector_kao);
+
+        mImgs = IMAGE_LOADER.loadImage("faces.jpg");
+
+        Random random = new Random();
+        mIndices = new ArrayList<Integer>();
+        for (int i=0; i<mNumImages; i++) {
+            mIndices.add(random.nextInt(400));
+        }
+        mLabels = new ArrayList<Integer>();
+        mIndex = 0;
+
+        updateFaceImage();
+        final RadioButton radioButton1 = (RadioButton)findViewById(R.id.RadioButton1);
+        final RadioButton radioButton2 = (RadioButton)findViewById(R.id.RadioButton2);
+        final Button nextButton = (Button)findViewById(R.id.button1);
+        if (nextButton == null || radioButton1 == null || radioButton2 == null) {
+            Log.e(LOG_TAG, "ERROR: cant find ID for the view");
+            return;
+        }
+        radioButton1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                nextButton.setEnabled(true);
+            }
+        });
+        radioButton2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                nextButton.setEnabled(true);
+            }
+        });
+        nextButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                RadioGroup radioGroup = (RadioGroup)findViewById(R.id.RadioGroup);
+                if (radioGroup == null || radioGroup.getCheckedRadioButtonId() < 0) {
+                    Log.e(LOG_TAG, "ERROR: radio button error");
+                    return;
+                }
+                int id = radioGroup.getCheckedRadioButtonId();
+                int like = 1;
+                RadioButton radioButton = (RadioButton)findViewById(id);
+                if (radioButton == null || radioButton.getText().toString().equals("Dislike")) {
+                    like = 0;
+                }
+                mLabels.add(like);
+                mIndex = mLabels.size();
+
+                if (mIndex < mNumImages) {
+                    updateFaceImage();
+                    radioGroup.clearCheck();
+                    nextButton.setEnabled(false);
+                    return;
+                }
+
+                // Finish
+                String logstr = "Indices: [";
+                for (int i=0; i<mNumImages; i++) {
+                    logstr += "" + mIndices.get(i) + ", ";
+                }
+                Log.i(LOG_TAG, logstr + "]");
+                logstr = "Like: [";
+                for (int i=0; i<mNumImages; i++) {
+                    logstr += "" + mLabels.get(i) + ", ";
+                }
+                Log.i(LOG_TAG, logstr + "]");
+                LinearLayout layout1 = (LinearLayout)findViewById(R.id.layout1);
+                LinearLayout layout2 = (LinearLayout)findViewById(R.id.layout2);
+                if (layout1 == null || layout2 == null) {
+                    Log.e(LOG_TAG, "ERROR: cant find ID for the view");
+                    return;
+                }
+                layout1.setVisibility(View.GONE);
+                layout2.setVisibility(View.VISIBLE);
+                Log.i(LOG_TAG, "== start training");
+                (new FaceSelectorTask()).execute(mIndices, mLabels);
+            }
+        });
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.e(LOG_TAG, "=== JNI test task exec ===");
-        (new TestFaceSelectorTask()).execute();
+    private void updateFaceImage() {
+        ImageView imgView = (ImageView)findViewById(R.id.imageView1);
+        AnImage anImage = mImgs[mIndices.get(mIndex)];
+        Bitmap bmp = Bitmap.createBitmap(anImage.getColorPixels(), anImage.getWidth(), anImage.getHeight(), Bitmap.Config.ARGB_8888);
+        if (imgView == null) {
+            Log.e(LOG_TAG, "ERROR: cant find ID for the view");
+            return;
+        }
+        imgView.setImageBitmap(bmp);
     }
 }

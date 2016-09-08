@@ -1,35 +1,20 @@
 package com.kao.face;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 class FavoriteFaceSelector {
-    private static final int IMG_SIZE = 85;
+    private static final int IMG_SIZE = 29;
     private static final int NUM_PATTERN_LIKE = 2;
 
     public FavoriteFaceSelector() {
         TinyCnnJni.initNetJni(IMG_SIZE, IMG_SIZE, NUM_PATTERN_LIKE);
     }
 
-    public class ClassificationResult implements Comparable {
-        public int label;
-        public float score;
-        public int index;
 
-        public ClassificationResult(int label, float score) {
-            this.label = label;
-            this.score = score;
-            this.index = -1;
-        }
-
-        @Override
-        public int compareTo(Object o) {
-            ClassificationResult oo = (ClassificationResult)o;
-            return (int)(this.score*10000) - (int)(oo.score*10000);
-        }
-    }
 
     public void trainWith(AnImage[] imgs, List<Integer> indices, List<Integer> likes) {
         int len = indices.size();
@@ -57,7 +42,7 @@ class FavoriteFaceSelector {
         return new ClassificationResult(label, score);
     }
 
-    public List<ClassificationResult> getSortedFavorites(AnImage []imgs, int num) {
+    public ArrayList<ClassificationResult> getSortedFavorites(AnImage []imgs, int num) {
         ArrayList<ClassificationResult> ans = new ArrayList<ClassificationResult>();
         int len = imgs.length;
         for (int i=0; i<len; i++) {
